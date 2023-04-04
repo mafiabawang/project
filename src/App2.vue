@@ -3,23 +3,28 @@
         <form @submit.prevent="addData">
             <div class="form-group">
                 <label for="matkul">Mata Kuliah:</label>
-                <input type="text" id="matkul" v-model="form.matkul" />
+                <input type="text" id="matkul" v-model="form.matkul" v-bind:class="{ 'input-error': error.matkul }"/>
+                <span v-if="error.matkul" class="error">{{ error.matkul }}</span>
             </div>
             <div class="form-group">
                 <label for="nilaiTugas">Nilai Tugas:</label>
-                <input type="number" id="nilaiTugas" v-model="form.nilaiTugas" />
+                <input type="number" id="nilaiTugas" v-model="form.nilaiTugas" v-bind:class="{ 'input-error': error.tugas }"/>
+                <span v-if="error.tugas" class="error">{{ error.tugas }}</span>
             </div>
             <div class="form-group">
                 <label for="nilaiUTS">Nilai UTS:</label>
-                <input type="number" id="nilaiUTS" v-model="form.nilaiUTS" />
+                <input type="number" id="nilaiUTS" v-model="form.nilaiUTS" v-bind:class="{ 'input-error': error.uts }"/>
+                <span v-if="error.uts" class="error">{{ error.uts }}</span>
             </div>
             <div class="form-group">
                 <label for="nilaiUAS">Nilai UAS:</label>
-                <input type="number" id="nilaiUAS" v-model="form.nilaiUAS" />
+                <input type="number" id="nilaiUAS" v-model="form.nilaiUAS" v-bind:class="{ 'input-error': error.uas }"/>
+                <span v-if="error.uas" class="error">{{ error.uas }}</span>
             </div>
             <div class="form-group">
                 <label for="sks">SKS:</label>
-                <input type="number" id="sks" v-model="form.sks" />
+                <input type="number" id="sks" v-model="form.sks" v-bind:class="{ 'input-error': error.sks }"/>
+                <span v-if="error.sks" class="error">{{ error.sks }}</span>
             </div>
 
             <button type="submit" class="btn btn-primary">Submit</button>
@@ -65,6 +70,13 @@ export default {
                 nilaiUAS: null,
                 sks: null
             },
+            error: {
+                matkul: '',
+                tugas: '',
+                uts: '',
+                uas: '',
+                sks: '',
+            },
             dataList: []
         }
     },
@@ -72,6 +84,62 @@ export default {
     methods: {
         addData() {
             let valid = true;
+
+            if (!this.form.matkul) {
+                this.error.matkul = "Mata Kuliah gaboleh kosong";
+                valid = false;
+            } else {
+                const isMatkulExist = this.dataList.some(data => data.matkul === this.form.matkul);
+                if (isMatkulExist) {
+                    this.error.matkul = "Maaf, Mata Kuliah sudah ada!";
+                    valid = false;
+                } else {
+                    this.error.matkul = "";
+                }
+            }
+
+            if (!this.form.nilaiTugas) {
+                this.error.tugas = "Nilai Tugas gaboleh kosong";
+                valid = false;
+            } else {
+                if (this.form.nilaiTugas < 0 || this.form.nilaiTugas > 100) {
+                    this.error.tugas = "Maaf, Nilai hanya dari 1 - 100";
+                    valid = false;
+                } else {
+                    this.error.tugas = "";
+                }
+            }
+
+            if (!this.form.nilaiUTS) {
+                this.error.uts = "Nilai UTS gaboleh kosong";
+                valid = false;
+            } else {
+                if (this.form.nilaiUTS < 0 || this.form.nilaiUTS > 100) {
+                    this.error.uts = "Maaf, Nilai hanya dari 1 - 100";
+                    valid = false;
+                } else {
+                    this.error.uts = "";
+                }
+            }
+
+            if (!this.form.nilaiUAS) {
+                this.error.uas = "Nilai UAS gaboleh kosong";
+                valid = false;
+            } else {
+                if (this.form.nilaiUAS < 0 || this.form.nilaiUAS > 100) {
+                    this.error.uas = "Maaf, Nilai hanya dari 1 - 100";
+                    valid = false;
+                } else {
+                    this.error.uas = "";
+                }
+            }
+
+            if (!this.form.sks) {
+                this.error.sks = "Mohon pilih SKS";
+                valid = false;
+            } else {
+                this.error.sks = '';
+            }
 
             if (valid) {
                 const totalNilai = (this.form.nilaiTugas * 0.2) + (this.form.nilaiUTS * 0.4) + (this.form.nilaiUAS * 0.4);
@@ -108,6 +176,12 @@ export default {
      margin-right: 10px;
  }
 
+ .error {
+     font-size: 14px;
+     color: red;
+     text-align: center;
+ }
+
  label {
      text-align: left;
      display: block;
@@ -126,6 +200,9 @@ export default {
      margin-top: 5px;
  }
 
+ .input-error {
+  border: 2px solid red !important;
+}
  button {
      padding: 10px;
      background-color: #007bff;
