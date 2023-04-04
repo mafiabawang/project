@@ -1,30 +1,41 @@
 <template>
     <div class="container">
         <form @submit.prevent="addData">
+            <base-input type="text" v-model="form.matkul" label="Mata Kuliah">
+                <template #error>
+                    <span v-if="error.matkul" class="error">{{ error.matkul }}</span>
+                </template>
+            </base-input>
+            <base-input type="number" v-model="form.nilaiTugas" label="Nilai Tugas">
+                <template #error>
+                    <span v-if="error.tugas" class="error">{{ error.tugas }}</span>
+                </template>
+            </base-input>
+            <base-input type="number" v-model="form.nilaiUTS" label="Nilai UTS">
+                <template #error>
+                    <span v-if="error.uts" class="error">{{ error.uts }}</span>
+                </template>
+            </base-input>
+            <base-input type="number" v-model="form.nilaiUAS" label="Nilai UAS">
+                <template #error>
+                    <span v-if="error.uas" class="error">{{ error.uas }}</span>
+                </template>
+            </base-input>
+            <base-select label="SKS" v-model="form.sks" :options="sksOptions" placeholder="-Pilih SKS-">
+                <template #error>
+                    <span v-if="error.sks" class="error">{{ error.sks }}</span>
+                </template>
+            </base-select>
+            <base-radio-group label="Semester" name="semester" :options="semesterOptions" v-model="form.semester">
+                <template #error>
+                    <span v-if="error.semester" class="error">{{ error.semester }}</span>
+                </template>
+            </base-radio-group>
             <div class="form-group">
-                <label for="matkul">Mata Kuliah:</label>
-                <input type="text" id="matkul" v-model="form.matkul" v-bind:class="{ 'input-error': error.matkul }"/>
-                <span v-if="error.matkul" class="error">{{ error.matkul }}</span>
-            </div>
-            <div class="form-group">
-                <label for="nilaiTugas">Nilai Tugas:</label>
-                <input type="number" id="nilaiTugas" v-model="form.nilaiTugas" v-bind:class="{ 'input-error': error.tugas }"/>
-                <span v-if="error.tugas" class="error">{{ error.tugas }}</span>
-            </div>
-            <div class="form-group">
-                <label for="nilaiUTS">Nilai UTS:</label>
-                <input type="number" id="nilaiUTS" v-model="form.nilaiUTS" v-bind:class="{ 'input-error': error.uts }"/>
-                <span v-if="error.uts" class="error">{{ error.uts }}</span>
-            </div>
-            <div class="form-group">
-                <label for="nilaiUAS">Nilai UAS:</label>
-                <input type="number" id="nilaiUAS" v-model="form.nilaiUAS" v-bind:class="{ 'input-error': error.uas }"/>
-                <span v-if="error.uas" class="error">{{ error.uas }}</span>
-            </div>
-            <div class="form-group">
-                <label for="sks">SKS:</label>
-                <input type="number" id="sks" v-model="form.sks" v-bind:class="{ 'input-error': error.sks }"/>
-                <span v-if="error.sks" class="error">{{ error.sks }}</span>
+                <label>Hide</label>
+                <div>
+                    <base-checkbox label="Yes" v-model="form.isHidden"></base-checkbox>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary">Submit</button>
@@ -39,8 +50,10 @@
                     <th>Nilai UTS</th>
                     <th>Nilai UAS</th>
                     <th>SKS</th>
-                    <th>Total Nilai</th>
+                    <th>Semester</th>
+                    <th>Rata-Rata</th>
                     <th>Grade</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -50,12 +63,22 @@
                     <td>{{ siswa.nilaiUTS }}</td>
                     <td>{{ siswa.nilaiUAS }}</td>
                     <td>{{ siswa.sks }}</td>
-                    <td>{{ siswa.totalNilai }}</td>
+                    <td>{{ siswa.semester }}</td>
+                    <td>{{ (siswa.isHidden) ? 'Hidden' : siswa.totalNilai }}</td>
                     <td>{{ siswa.grade }}</td>
+                    <td>
+                        <button @click="deleteData(index)" class="btn btn-danger">Delete</button>
+                    </td>
                 </tr>
             </tbody>
         </table>
         <!-- Lanjutkan Kode disini -->
+        <div>
+            <h2>JIKA INGIN TAU IPK</h2>
+            <button @click="findIPK" type="submit" class="btn btn-primary">IPK</button>
+            <br />
+            <span style="color: red;" v-if="ipk">{{ ipk }}</span>
+        </div>
     </div>
 </template>
     
@@ -68,16 +91,28 @@ export default {
                 nilaiTugas: null,
                 nilaiUTS: null,
                 nilaiUAS: null,
-                sks: null
+                sks: null,
+                semester: '',
+                isHidden: false
             },
+            ipk: null,
             error: {
                 matkul: '',
                 tugas: '',
                 uts: '',
                 uas: '',
                 sks: '',
+                semester: ''
             },
-            dataList: []
+            dataList: [],
+            sksOptions: [
+                { value: 1, label: 1 },
+                { value: 2, label: 2 },
+            ],
+            semesterOptions: [
+                { text: "Reguler", value: 'Reguler' },
+                { text: "Antara", value: 'Antara' },
+            ]
         }
     },
     //Lanjutkan disini
@@ -141,6 +176,13 @@ export default {
                 this.error.sks = '';
             }
 
+            if (!this.form.semester) {
+                this.error.semester = "Mohon Pilih Salah Satu";
+                valid = false;
+            } else {
+                this.error.semester = '';
+            }
+
             if (valid) {
                 const totalNilai = (this.form.nilaiTugas * 0.2) + (this.form.nilaiUTS * 0.4) + (this.form.nilaiUAS * 0.4);
                 let grade = (totalNilai >= 81) ? "A" : (totalNilai >= 71) ? "AB" : (totalNilai >= 66) ? "B" : (totalNilai >= 61) ? "BC" : (totalNilai >= 56) ? "C" : (totalNilai >= 41) ? "D" : "E";
@@ -150,8 +192,10 @@ export default {
                     nilaiUTS: this.form.nilaiUTS,
                     nilaiUAS: this.form.nilaiUAS,
                     sks: this.form.sks,
+                    semester: this.form.semester,
                     totalNilai: totalNilai.toFixed(2),
-                    grade: grade
+                    grade: grade,
+                    isHidden: this.form.isHidden
                 };
 
                 this.dataList.push(newData);
@@ -160,8 +204,58 @@ export default {
                 this.form.nilaiUTS = null;
                 this.form.nilaiUAS = null;
                 this.form.sks = null;
+                this.form.semester = '';
+                this.form.isHidden = false;
+                this.ipk = null;
             }
         },
+        deleteData(index) {
+            this.dataList.splice(index, 1);
+            this.ipk = null;
+        },
+        //Lanjutkan disini
+        findIPK() {
+            let totalGrade = 0;
+            let totalSKS = 0;
+
+            this.dataList.forEach(siswa => {
+                const grade = siswa.grade;
+                const sks = siswa.sks;
+
+                switch (grade) {
+                    case 'A':
+                        totalGrade += 4 * sks;
+                        break;
+                    case 'AB':
+                        totalGrade += 3.5 * sks;
+                        break;
+                    case 'B':
+                        totalGrade += 3 * sks;
+                        break;
+                    case 'BC':
+                        totalGrade += 2.5 * sks;
+                        break;
+                    case 'C':
+                        totalGrade += 2 * sks;
+                        break;
+                    case 'D':
+                        totalGrade += 1 * sks;
+                        break;
+                    default:
+                        totalGrade += 0;
+                        break;
+                }
+
+                totalSKS += sks;
+            });
+
+            if (totalSKS === 0) {
+                this.ipk = "Tidak ada data mata kuliah";
+            } else {
+                const ipk = totalGrade / totalSKS;
+                this.ipk = `${ipk.toFixed(2)}`;
+            }
+        }
     }
 }
 </script>
@@ -176,12 +270,6 @@ export default {
      margin-right: 10px;
  }
 
- .error {
-     font-size: 14px;
-     color: red;
-     text-align: center;
- }
-
  label {
      text-align: left;
      display: block;
@@ -189,20 +277,12 @@ export default {
      margin-bottom: 5px;
  }
 
- input[type="text"],
- input[type="number"] {
-     display: block;
-     width: 80%;
-     padding: 10px;
-     border: 1px solid #ccc;
-     border-radius: 5px;
-     font-size: 16px;
-     margin-top: 5px;
+ .error {
+     font-size: 14px;
+     color: red;
+     text-align: center;
  }
 
- .input-error {
-  border: 2px solid red !important;
-}
  button {
      padding: 10px;
      background-color: #007bff;
