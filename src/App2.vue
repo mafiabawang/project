@@ -36,19 +36,17 @@
                     <th>SKS</th>
                     <th>Total Nilai</th>
                     <th>Grade</th>
-                    <th></th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>CONTOH MATKUL</td>
-                    <td>100</td>
-                    <td>100</td>
-                    <td>100</td>
-                    <td>2</td>
-                    <td>100.0</td>
-                    <td>A</td>
-                    <td>AKSI</td>
+                <tr v-for="(siswa, index) in dataList" :key="index">
+                    <td>{{ siswa.matkul }}</td>
+                    <td>{{ siswa.nilaiTugas }}</td>
+                    <td>{{ siswa.nilaiUTS }}</td>
+                    <td>{{ siswa.nilaiUAS }}</td>
+                    <td>{{ siswa.sks }}</td>
+                    <td>{{ siswa.totalNilai }}</td>
+                    <td>{{ siswa.grade }}</td>
                 </tr>
             </tbody>
         </table>
@@ -67,11 +65,36 @@ export default {
                 nilaiUAS: null,
                 sks: null
             },
-
             dataList: []
         }
     },
     //Lanjutkan disini
+    methods: {
+        addData() {
+            let valid = true;
+
+            if (valid) {
+                const totalNilai = (this.form.nilaiTugas * 0.2) + (this.form.nilaiUTS * 0.4) + (this.form.nilaiUAS * 0.4);
+                let grade = (totalNilai >= 81) ? "A" : (totalNilai >= 71) ? "AB" : (totalNilai >= 66) ? "B" : (totalNilai >= 61) ? "BC" : (totalNilai >= 56) ? "C" : (totalNilai >= 41) ? "D" : "E";
+                const newData = {
+                    matkul: this.form.matkul,
+                    nilaiTugas: this.form.nilaiTugas,
+                    nilaiUTS: this.form.nilaiUTS,
+                    nilaiUAS: this.form.nilaiUAS,
+                    sks: this.form.sks,
+                    totalNilai: totalNilai.toFixed(2),
+                    grade: grade
+                };
+
+                this.dataList.push(newData);
+                this.form.matkul = "";
+                this.form.nilaiTugas = null;
+                this.form.nilaiUTS = null;
+                this.form.nilaiUAS = null;
+                this.form.sks = null;
+            }
+        },
+    }
 }
 </script>
 <style scoped> .container {
