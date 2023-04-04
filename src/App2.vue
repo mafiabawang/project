@@ -1,6 +1,17 @@
 <template>
     <div class="container">
-        <form @submit.prevent="addData">
+        <div class="notification notification-success" v-if="isSuccess">
+            Data berhasil disimpan!
+        </div>
+        <div class="notification notification-success" v-if="isDeleted">
+            Data berhasil dihapus!
+        </div>
+        <div class="notification notification-error" v-if="isDataChanged">
+            Tidak ada perubahan data.
+        </div>
+
+        <form @submit.prevent="submitForm">
+            <input type="hidden" v-model="form.id" />
             <base-input type="text" v-model="form.matkul" label="Mata Kuliah">
                 <template #error>
                     <span v-if="error.matkul" class="error">{{ error.matkul }}</span>
@@ -38,7 +49,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="submit" class="btn btn-primary">{{ form.id ? 'Update' : 'Submit' }}</button>
         </form>
 
         <hr />
@@ -57,7 +68,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(siswa, index) in dataList" :key="index">
+                <tr v-for="siswa in dataList" :key="siswa.id">
                     <td>{{ siswa.matkul }}</td>
                     <td>{{ siswa.nilaiTugas }}</td>
                     <td>{{ siswa.nilaiUTS }}</td>
@@ -67,7 +78,8 @@
                     <td>{{ (siswa.isHidden) ? 'Hidden' : siswa.totalNilai }}</td>
                     <td>{{ siswa.grade }}</td>
                     <td>
-                        <button @click="deleteData(index)" class="btn btn-danger">Delete</button>
+                        <button @click="editData(siswa)" class="edit-btn">Edit</button>
+                        <button @click="deleteData(siswa)" class="btn btn-danger">Delete</button>
                     </td>
                 </tr>
             </tbody>
@@ -83,11 +95,16 @@
 </template>
     
 <script>
+import axios from "axios";
 export default {
     data() {
         return {
+            isDeleted: false,
+            isDataChanged: false,
+            isSuccess: false,
             form: {
-                matkul: "",
+                id: '',
+                matkul: '',
                 nilaiTugas: null,
                 nilaiUTS: null,
                 nilaiUAS: null,
@@ -115,19 +132,61 @@ export default {
             ]
         }
     },
+    mounted() {
+        this.load();
+    },
     //Lanjutkan disini
     methods: {
-        addData() {
+        submitForm() {
+            if (this.form.id) {
+                if (this.isDataUnchanged()){
+                    this.isDataChanged = true;
+                } else {
+                    this.saveData(true);
+                }
+                
+            } else {
+                this.saveData(false);
+            }
+        },
+        isDataUnchanged() {
+            // Get data of the currently edited row
+            const editedData = this.dataList.find((data) => data.id === this.form.id);
+
+            // Check if form data is unchanged
+            return (
+                editedData.matkul === this.form.matkul &&
+                editedData.nilaiTugas === this.form.nilaiTugas &&
+                editedData.nilaiUTS === this.form.nilaiUTS &&
+                editedData.nilaiUAS === this.form.nilaiUAS &&
+                editedData.sks === this.form.sks &&
+                editedData.semester === this.form.semester &&
+                editedData.isHidden === this.form.isHidden
+            );
+        },
+        load() {
+            axios.get("http://localhost:3000/dataList/").then((res) => {
+                this.dataList = res.data; //respon dari rest api dimasukan ke users
+            })
+                .catch((err) => {
+                    console.log(err);
+                });
+        },
+        saveData(isEdit) { //Create OR Update
             let valid = true;
 
             if (!this.form.matkul) {
                 this.error.matkul = "Mata Kuliah gaboleh kosong";
                 valid = false;
             } else {
-                const isMatkulExist = this.dataList.some(data => data.matkul === this.form.matkul);
-                if (isMatkulExist) {
-                    this.error.matkul = "Maaf, Mata Kuliah sudah ada!";
-                    valid = false;
+                if (!isEdit) {
+                    const isMatkulExist = this.dataList.some(data => data.matkul === this.form.matkul);
+                    if (isMatkulExist) {
+                        this.error.matkul = "Maaf, Mata Kuliah sudah ada!";
+                        valid = false;
+                    } else {
+                        this.error.matkul = "";
+                    }
                 } else {
                     this.error.matkul = "";
                 }
@@ -198,20 +257,49 @@ export default {
                     isHidden: this.form.isHidden
                 };
 
-                this.dataList.push(newData);
-                this.form.matkul = "";
-                this.form.nilaiTugas = null;
-                this.form.nilaiUTS = null;
-                this.form.nilaiUAS = null;
-                this.form.sks = null;
-                this.form.semester = '';
-                this.form.isHidden = false;
-                this.ipk = null;
+                let url = "http://localhost:3000/dataList/";
+                let method = axios.post;
+                if (isEdit) {
+                    url += this.form.id;
+                    method = axios.put;
+                }
+
+                method(url, newData).then((res) => {
+                    this.isSuccess = true;
+                    this.form = {
+                        id: "",
+                        matkul: "",
+                        nilaiTugas: null,
+                        nilaiUTS: null,
+                        nilaiUAS: null,
+                        sks: null,
+                        semester: "",
+                        isHidden: false,
+                    };
+                    this.load();
+                });
             }
         },
-        deleteData(index) {
-            this.dataList.splice(index, 1);
-            this.ipk = null;
+        deleteData(siswa) {
+            axios.delete("http://localhost:3000/dataList/" + siswa.id).then((res) => {
+                this.isDeleted = true;
+                this.load();
+                this.dataList.splice(siswa.id, 1);
+                this.form = {
+                        id: "",
+                        matkul: "",
+                        nilaiTugas: null,
+                        nilaiUTS: null,
+                        nilaiUAS: null,
+                        sks: null,
+                        semester: "",
+                        isHidden: false,
+                    };
+                this.ipk = null;
+            })
+        },
+        editData(siswa) {
+            this.form = { ...siswa };
         },
         //Lanjutkan disini
         findIPK() {
@@ -263,6 +351,45 @@ export default {
      max-width: 1920px;
      margin: 0 auto;
      padding: 20px;
+ }
+
+ .notification {
+     position: absolute;
+     top: 10px;
+     right: 10px;
+     padding: 10px;
+     border-radius: 5px;
+     color: #fff;
+     font-weight: bold;
+     font-size: 16px;
+     animation: fadeOut 3s ease-in-out forwards;
+ }
+
+ @keyframes fadeOut {
+     0% {
+         opacity: 1;
+     }
+
+     90% {
+         opacity: 1;
+     }
+
+     100% {
+         opacity: 0;
+         display: none;
+     }
+ }
+
+ .notification-success {
+     background-color: #4CAF50;
+ }
+
+ .notification-error {
+     background-color: #f44336;
+ }
+
+ .notification.is-fading-out {
+     opacity: 0;
  }
 
  .form-group {
@@ -321,6 +448,10 @@ export default {
      background-color: #007bff;
      color: #fff;
      font-weight: bold;
+ }
+
+ .edit-btn {
+     margin-right: 10px;
  }
 
  .btn-danger {
