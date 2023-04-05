@@ -139,12 +139,15 @@ export default {
     methods: {
         submitForm() {
             if (this.form.id) {
-                if (this.isDataUnchanged()){
+                if (this.isDataUnchanged()) {
                     this.isDataChanged = true;
+                    setTimeout(() => {
+                        this.isDataChanged = false
+                    }, 3000);
                 } else {
                     this.saveData(true);
                 }
-                
+
             } else {
                 this.saveData(false);
             }
@@ -266,6 +269,9 @@ export default {
 
                 method(url, newData).then((res) => {
                     this.isSuccess = true;
+                    setTimeout(() => {
+                        this.isSuccess = false
+                    }, 3000);
                     this.form = {
                         id: "",
                         matkul: "",
@@ -283,18 +289,21 @@ export default {
         deleteData(siswa) {
             axios.delete("http://localhost:3000/dataList/" + siswa.id).then((res) => {
                 this.isDeleted = true;
+                setTimeout(() => {
+                    this.isDeleted = false
+                }, 3000);
                 this.load();
                 this.dataList.splice(siswa.id, 1);
                 this.form = {
-                        id: "",
-                        matkul: "",
-                        nilaiTugas: null,
-                        nilaiUTS: null,
-                        nilaiUAS: null,
-                        sks: null,
-                        semester: "",
-                        isHidden: false,
-                    };
+                    id: "",
+                    matkul: "",
+                    nilaiTugas: null,
+                    nilaiUTS: null,
+                    nilaiUAS: null,
+                    sks: null,
+                    semester: "",
+                    isHidden: false,
+                };
                 this.ipk = null;
             })
         },
@@ -362,23 +371,8 @@ export default {
      color: #fff;
      font-weight: bold;
      font-size: 16px;
-     animation: fadeOut 3s ease-in-out forwards;
  }
 
- @keyframes fadeOut {
-     0% {
-         opacity: 1;
-     }
-
-     90% {
-         opacity: 1;
-     }
-
-     100% {
-         opacity: 0;
-         display: none;
-     }
- }
 
  .notification-success {
      background-color: #4CAF50;
