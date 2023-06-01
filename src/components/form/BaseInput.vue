@@ -38,7 +38,8 @@ export default {
  }
 
  input[type="text"],
- input[type="number"] {
+ input[type="number"],
+ input[type="password"] {
      display: block;
      width: 80%;
      padding: 10px;

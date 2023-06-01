@@ -1,3 +1,10 @@
 {
-  "dataList": []
+  "dataList": [],
+  "users": [
+    {
+      "email": "mafiapentol@gmail.com",
+      "password": "$2a$10$eZ.CZxeNiOR0qya3Mk41y.xzTcWr7aD.jo4WagTEcTuCHfvFgb5.O",
+      "id": 1
+    }
+  ]
 }

@@ -1,13 +1,9 @@
 <template>
     <div class="container">
-        <div class="notification notification-success" v-if="isSuccess">
-            Data berhasil disimpan!
-        </div>
-        <div class="notification notification-success" v-if="isDeleted">
-            Data berhasil dihapus!
-        </div>
-        <div class="notification notification-error" v-if="isDataChanged">
-            Tidak ada perubahan data.
+        <div class="notification"
+            :class="{ 'notification-success': isSuccess || isDeleted || isLoggin, 'notification-error': isDataChanged }"
+            v-if="isSuccess || isDeleted || isDataChanged || isLoggin">
+            {{ this.notification }}
         </div>
 
         <form @submit.prevent="submitForm">
@@ -91,6 +87,8 @@
             <br />
             <span style="color: red;" v-if="ipk">{{ ipk }}</span>
         </div>
+        <br />
+        <button @click="logout" type="submit" class="btn btn-danger">LOGOUT</button>
     </div>
 </template>
     
@@ -102,6 +100,8 @@ export default {
             isDeleted: false,
             isDataChanged: false,
             isSuccess: false,
+            isLoggin: false,
+            notification: '',
             form: {
                 id: '',
                 matkul: '',
@@ -132,18 +132,37 @@ export default {
             ]
         }
     },
+    created() {
+        const status = sessionStorage.getItem("statusLog");
+        if (status === "true") {
+            this.notification = 'Login Berhasil!';
+            this.isLoggin = true;
+            setTimeout(() => {
+                this.isLoggin = false;
+            }, 3000);
+
+            sessionStorage.removeItem("statusLog");
+        }
+    },
     mounted() {
         this.load();
+
     },
     //Lanjutkan disini
     methods: {
+        logout() {
+            sessionStorage.removeItem("admin");
+            sessionStorage.setItem("statusLog", "false");
+            this.$router.push({ name: 'Login' });
+        },
         submitForm() {
             if (this.form.id) {
                 if (this.isDataUnchanged()) {
                     this.isDataChanged = true;
+                    this.notification = 'Tidak ada perubahan data.';
                     setTimeout(() => {
                         this.isDataChanged = false
-                    }, 3000);
+                    }, 2000);
                 } else {
                     this.saveData(true);
                 }
@@ -168,7 +187,12 @@ export default {
             );
         },
         load() {
-            axios.get("http://localhost:3000/dataList/").then((res) => {
+            const { token } = JSON.parse(sessionStorage.getItem("admin"));
+            axios.get("http://localhost:3000/660/dataList/", {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }).then((res) => {
                 this.dataList = res.data; //respon dari rest api dimasukan ke users
             })
                 .catch((err) => {
@@ -260,18 +284,28 @@ export default {
                     isHidden: this.form.isHidden
                 };
 
-                let url = "http://localhost:3000/dataList/";
+                const { token } = JSON.parse(sessionStorage.getItem("admin"));
+                let url = "http://localhost:3000/660/dataList/";
                 let method = axios.post;
                 if (isEdit) {
                     url += this.form.id;
                     method = axios.put;
                 }
 
-                method(url, newData).then((res) => {
+                method(url, newData, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }).then((res) => {
                     this.isSuccess = true;
+                    if (isEdit) {
+                        this.notification = 'Data Berhasil DiUpdate!'
+                    } else {
+                        this.notification = 'Data Berhasil Disimpan!'
+                    }
                     setTimeout(() => {
                         this.isSuccess = false
-                    }, 3000);
+                    }, 2000);
                     this.form = {
                         id: "",
                         matkul: "",
@@ -282,16 +316,23 @@ export default {
                         semester: "",
                         isHidden: false,
                     };
+                    this.ipk = null;
                     this.load();
                 });
             }
         },
         deleteData(siswa) {
-            axios.delete("http://localhost:3000/dataList/" + siswa.id).then((res) => {
+            const { token } = JSON.parse(sessionStorage.getItem("admin"));
+            axios.delete("http://localhost:3000/660/dataList/" + siswa.id, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }).then((res) => {
                 this.isDeleted = true;
+                this.notification = 'Data berhasil dihapus!';
                 setTimeout(() => {
                     this.isDeleted = false
-                }, 3000);
+                }, 2000);
                 this.load();
                 this.dataList.splice(siswa.id, 1);
                 this.form = {
