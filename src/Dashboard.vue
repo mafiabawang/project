@@ -146,7 +146,19 @@ export default {
     },
     mounted() {
         this.load();
+        const current = Math.floor(Date.now() / 1000);
+        const { exp } = JSON.parse(sessionStorage.getItem("admin"));
 
+        this.interval = setInterval(() => {
+            // Jika waktu saat ini melewati waktu kadaluwarsa, lakukan logout
+            if (current > exp) {
+                this.logout();
+            }
+        }, 1000);
+
+    },
+    beforeDestroy() {
+        clearInterval(this.interval);
     },
     //Lanjutkan disini
     methods: {

@@ -1,5 +1,30 @@
 {
-  "dataList": [],
+  "dataList": [
+    {
+      "matkul": "ASD",
+      "nilaiTugas": "100",
+      "nilaiUTS": "100",
+      "nilaiUAS": "100",
+      "sks": 2,
+      "semester": "Reguler",
+      "totalNilai": "100.00",
+      "grade": "A",
+      "isHidden": false,
+      "id": 1
+    },
+    {
+      "matkul": "WPW",
+      "nilaiTugas": "80",
+      "nilaiUTS": "80",
+      "nilaiUAS": "80",
+      "sks": 1,
+      "semester": "Reguler",
+      "totalNilai": "80.00",
+      "grade": "AB",
+      "isHidden": false,
+      "id": 2
+    }
+  ],
   "users": [
     {
       "email": "mafiapentol@gmail.com",

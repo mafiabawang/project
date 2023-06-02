@@ -98,9 +98,9 @@ export default {
                     const token = res.data.accessToken;
                     const decoded = jwt_decode(token);
                     console.log(decoded);
-                    const { email, sub } = decoded;
+                    const { email, sub, exp } = decoded;
 
-                    sessionStorage.setItem("admin", JSON.stringify({ email, sub, token }));
+                    sessionStorage.setItem("admin", JSON.stringify({ email, sub, exp, token }));
                     sessionStorage.setItem("statusLog", "true");
                     this.$router.push({ name: 'Dashboard' });
 
