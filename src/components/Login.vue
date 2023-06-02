@@ -1,8 +1,6 @@
 <template>
     <div class="container">
-        <div class="notification"
-            :class="{ 'notification-success': isLogout }"
-            v-if="isLogout">
+        <div class="notification" :class="{ 'notification-success': isLogout }" v-if="isLogout">
             {{ this.notification }}
         </div>
         <form @submit.prevent="submitForm">
@@ -65,27 +63,31 @@ export default {
                 const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
                 if (!emailRegex.test(this.form.email)) {
                     this.error.email = "Format email tidak valid";
-                    valid = false;
-                } else {
-                    this.error.email = "";
-                }
-            }
-
-            if (!this.form.password) {
-                this.error.password = "Password Tidak boleh kosong";
-                valid = false;
-            } else {
-                const email = this.form.email;
-                const userData = data.users.find(user => user.email === email);
-
-                if (!userData || !bcrypt.compareSync(this.form.password, userData.password)) {
-                    this.error.password = "Maaf Password salah";
-                    valid = false;
-                } else {
                     this.error.password = "";
+                    valid = false;
+                } else {
+                    const userData = data.users.find(user => user.email === this.form.email);
+                    if (!userData) {
+                        this.error.email = "Maaf Email Tidak ada!";
+                        this.error.password = "";
+                        valid = false;
+                    } else {
+                        if (!bcrypt.compareSync(this.form.password, userData.password)) {
+                            this.error.password = "Maaf Password salah";
+                            this.error.email = "";
+                            valid = false;
+                        } else {
+                            this.error.email = "";
+                            this.error.password = "";
+                        }
+                    }
                 }
             }
 
+            if(!this.form.password) {
+                this.error.password = "Password tidak boleh kosong!";
+                valid = false;
+            }
 
             if (valid) {
                 const newData = {
@@ -116,20 +118,20 @@ export default {
 </script>
 <style scoped>
 .notification {
-     position: absolute;
-     top: 10px;
-     right: 10px;
-     padding: 10px;
-     border-radius: 5px;
-     color: #fff;
-     font-weight: bold;
-     font-size: 16px;
- }
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 16px;
+}
 
 
- .notification-success {
-     background-color: #4CAF50;
- }
+.notification-success {
+    background-color: #4CAF50;
+}
 
 .container {
     max-width: 1920px;
